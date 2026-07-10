@@ -22,7 +22,4 @@ Route::post('/pinjam-buku/{judul?}', [libraryController::class, 'prosesPinjam'])
 Route::post('/kembalikan-buku', [libraryController::class, 'prosesKembali'])
       ->middleware('auth');
 
-Route::post('/upload-foto', [libraryController::class, 'uploadFoto'])
-      ->middleware('auth');
-
 require __DIR__.'/auth.php';
