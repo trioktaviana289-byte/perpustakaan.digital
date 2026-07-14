@@ -6,74 +6,78 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Book;
 use App\Models\Borrowing;
+use Carbon\Carbon;
 
-class LibraryController extends Controller
+class libraryController extends Controller
 {
-    public function arahkanHalaman() 
-    {
-        $user = Auth::user();
+ public function arahkanHalaman(Request $request)
+{
+    $user = Auth::user();
 
-        if ($user->role == 'penjaga') {
-            $semuaPinjaman = Borrowing::all();
-            return view('halaman_penjaga', compact('semuaPinjaman'));
-        } else {
-            $semuaBuku = Book::all();
-            return view('halaman_buku', compact('semuaBuku'));
-        }
+    // 1. Ambil data keterlambatan pengembalian buku
+    $bukuTerlambat = Borrowing::where('tanggal_kembali', '<', Carbon::now())->get();
+
+    // 2. Ambil parameter kategori dari URL (?kategori=...)
+    $kategoriDipilih = $request->query('kategori');
+
+    // 3. Ambil data buku berdasarkan kategori yang diklik
+    if ($kategoriDipilih) {
+        $semuaBuku = Book::where('kategori', $kategoriDipilih)->get();
+    } else {
+        $semuaBuku = Book::all();
     }
 
-
-    public function prosesPinjam(Request $request) 
-    {
-        //ambil judul buku dari input form hidden (name="judul_buku")
-        $judulBukuDariForm = $request->judul_buku;
-
-        //cari data buku yang sesuai di database
-        $buku = Book::where('judul',$judulBukuDariForm)->first();
+    // 4. BAGIAN YANG DIUBAH: Pisahkan halaman berdasarkan role penjaga vs peminjam
+    if ($user && (strtolower($user->role) === 'penjaga' || strtolower($user->role) === 'admin')) {
+        $semuaPinjaman = Borrowing::all();
         
-        //pengaman: jika buku tidak ditemukan, gagalkan proses
+        // Mengarahkan penjaga ke file view 'resources/views/penjaga.blade.php'
+        return view('halaman_penjaga', compact('semuaPinjaman', 'bukuTerlambat', 'semuaBuku'));
+    } else {
+        // Mengarahkan peminjam biasa ke file view 'resources/views/dashboard.blade.php'
+        return view('dashboard', compact('bukuTerlambat', 'semuaBuku'));
+    }
+}
+
+    // 2. Memproses aksi peminjaman buku dari siswa/peminjam
+    public function prosesPinjam(Request $request)
+    {
+        $judulBukuDariForm = $request->judul_buku;
+        $buku = Book::where('judul', $judulBukuDariForm)->first();
+
         if (!$buku) {
-            
-            return redirect('/dashboard')->with('error','Aduh, buku tidak ditemukan!');
+            return redirect('/dashboard')->with('error', 'Aduh, buku tidak ditemukan!');
         }
 
-        //ubah status buku tersebut menjadi "dipinjam'
-        $buku->status = "Dipinjam";
+        $buku->status = 'Dipinjam';
         $buku->save();
 
-        //catat riwayat transaksi ke dalam tabel borrowings
+        // Catat riwayat transaksi ke dalam tabel borrowings
+        // Ditambahkan tanggal_kembali otomatis (7 hari dari sekarang)
         Borrowing::create([
-            'nama_peminjam' => Auth::user()->name,
-            'judul_buku'    => $buku->judul
+            'nama_peminjam'   => Auth::user()->name,
+            'judul_buku'      => $buku->judul,
+            'tanggal_kembali' => Carbon::now()->addDays(7) 
         ]);
 
-        return redirect('/dashboard')->with('sukses', 'Berhasil meminjam buku' . $buku->judul . '!');
+        return redirect('/dashboard')->with('sukses', 'Berhasil meminjam buku ' . $buku->judul . '!');
     }
 
-    //buat satu fungsi yang digunakan untuk menerima buku yang dipinjam
-   public function prosesKembali(Request $request)
-{
-    // 🌟 KUNCI UTAMA: Gunakan trim() untuk menghapus spasi gaib di awal/akhir judul buku
-    $judulBuku = trim($request->judul_buku);
+    // 3. Memproses pengembalian buku
+    public function prosesKembali(Request $request)
+    {
+        $judulBuku = trim($request->judul_buku);
+        $buku = Book::where('judul', 'LIKE', $judulBuku)->first();
 
-    // 1. Cari data buku dengan pencarian yang lebih fleksibel (menggunakan LIKE)
-    $buku = Book::where('judul', 'LIKE', $judulBuku)->first();
+        if ($buku) {
+            $buku->status = 'Tersedia';
+            $buku->save();
 
-    if ($buku) {
-        // 2. Ubah status buku menjadi 'Tersedia' kembali
-        $buku->status = 'Tersedia';
-        $buku->save();
+            Borrowing::where('judul_buku', 'LIKE', $judulBuku)->delete();
 
-        // 3. Hapus catatan peminjaman dari tabel borrowings secara bersih
-        Borrowing::where('judul_buku', 'LIKE', $judulBuku)->delete();
+            return redirect('/dashboard')->with('sukses', 'Buku "' . $buku->judul . '" telah berhasil dikembalikan!');
+        }
 
-        // 4. Alihkan kembali ke dashboard dengan membawa pesan sukses
-        return redirect('/dashboard')->with('sukses', 'Buku "' . $buku->judul . '" telah berhasil dikembalikan!');
+        return redirect('/dashboard')->with('error', 'Aduh! Gagal mengubah status buku "' . $judulBuku . '" di database.');
     }
-
-    // Jika pencarian gagal, lempar notifikasi eror agar kita tahu masalahnya
-    return redirect('/dashboard')->with('error', 'Aduh! Gagal mengubah status buku "' . $judulBuku . '" di database.');
-
-}
- 
 }

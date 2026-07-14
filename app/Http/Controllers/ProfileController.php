@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage; // <-- Berada aman di luar class sebagai namespace import
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -26,13 +27,34 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        
+        // Validasi input data termasuk file gambar
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'], // Maksimal 2MB
+        ]);
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        $user->fill($request->validated());
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        // Proses Upload Avatar jika ada file baru yang diunggah
+        if ($request->hasFile('avatar')) {
+            // Hapus foto lama jika ada agar storage tidak penuh
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+
+            // Simpan foto baru ke folder 'avatars' di storage/app/public/avatars
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = $path;
+        }
+
+        $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
@@ -49,6 +71,11 @@ class ProfileController extends Controller
         $user = $request->user();
 
         Auth::logout();
+
+        // Hapus foto profil dari storage saat akun dihapus
+        if ($user->avatar) {
+            Storage::disk('public')->delete($user->avatar);
+        }
 
         $user->delete();
 

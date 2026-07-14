@@ -11,9 +11,8 @@
     <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl border border-slate-200">
         
         <div class="text-center mb-8">
-            <div class="flex justify-center mb-3">
+            <div class="flex justify-center mb-3">  
                
-            </div>
 
             <h1 class="text-3xl font-extrabold text-blue-600 mb-2">📚 Perpustakaan Ceria</h1>
             <p class="text-slate-500">Halo Teman Peminjam! Selamat memilih-lihat koleksi buku terbaik kami ya.</p>

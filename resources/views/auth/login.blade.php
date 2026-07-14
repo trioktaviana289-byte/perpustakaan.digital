@@ -4,54 +4,96 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Masuk Perpustakaan Ceria</title>
-        <!-- Kita panggil Tailwind CSS lewat internet biar praktis dan langsung cantk -->
-         <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     </head>
-    <body class="bg-gradient-to-tr from-blue-600 to-indigo-800 font-sans min-h-screen flex items-center justify-center p-4">
+    <body class="min-h-screen flex flex-col sm:justify-center items-center bg-sky-100">
         
-         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-white/20">
+        <div class="min-h-screen w-full bg-sky-100 flex selection:bg-sky-500 selection:text-white relative items-center justify-center">
+            
+            <div class="flex-1 flex flex-col justify-center items-center p-6 sm:p-10 md:max-w-xl z-10">
+                
+                <div class="w-full max-w-[400px] bg-white p-8 rounded-3xl border border-sky-200/60 shadow-[0_20px_50px_rgba(56,189,248,0.35)] hover:shadow-[0_20px_50px_rgba(56,189,248,0.5)] transition-all duration-300">
+                    
+                    <div class="flex flex-col items-start mb-8">
+                        <div class="w-12 h-12 bg-sky-50 rounded-2xl flex items-center justify-center mb-4 border border-sky-100/50">
+                            <span class="text-2xl">📚</span>
+                        </div>
+                        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Selamat Datang!</h1>
+                        <p class="text-xs text-slate-400 mt-1.5 font-medium leading-relaxed">Silakan masuk untuk menjelajahi koleksi buku dan memantau aktivitas.</p>
+                    </div>
+
+                    <form method="POST" action="{{ route('login') }}" class="space-y-5">
+                        @csrf
+
+                        <div class="space-y-1.5">
+                            <label for="email" class="text-[11px] font-bold text-slate-400 uppercase tracking-wider pl-1">Alamat Email</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 text-xs">✉️</span>
+                                <input id="email" type="email" name="email" placeholder="nama@email.com" required autofocus
+                                    class="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-50 transition-all duration-200 placeholder:text-slate-300 font-medium text-slate-700" />
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="password" class="text-[11px] font-bold text-slate-400 uppercase tracking-wider pl-1">Kata Sandi</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 text-xs">🔒</span>
+                                <input id="password" type="password" name="password" placeholder="••••••••" required 
+                                    class="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-50 transition-all duration-200 placeholder:text-slate-300 text-slate-700" />
+                            </div>
+                        </div>
+
+                        <div class="flex items-center pt-1">
+                            <label class="flex items-center cursor-pointer group">
+                                <input type="checkbox" name="remember" class="w-4 h-4 rounded text-sky-400 border-slate-300 focus:ring-sky-300 cursor-pointer transition-colors">
+                                <span class="ml-2.5 text-xs font-semibold text-slate-400 group-hover:text-slate-600 transition-colors">Biarkan saya tetap masuk</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" style="background-color: #38bdf8 !important;"
+                            class="w-full py-3.5 text-white font-extrabold rounded-xl text-xs tracking-widest uppercase shadow-lg shadow-sky-200/50 hover:opacity-95 hover:shadow-sky-300/50 active:scale-[0.98] transition-all duration-200 cursor-pointer text-center block">
+                            Masuk Sekarang
+                        </button>
+                    </form>
+
+                    <div class="relative flex py-4 items-center my-5">
+                        <div class="flex-grow border-t border-slate-100"></div>
+                        <span class="flex-shrink mx-4 text-[10px] font-bold text-slate-300 tracking-widest uppercase">Atau</span>
+                        <div class="flex-grow border-t border-slate-100"></div>
+                    </div>
+
+                    <div class="text-center">
+                        <a href="{{ route('register') }}" class="text-xs font-bold text-sky-400 hover:text-sky-500 transition-colors">
+                            Belum punya akun? Bikin di sini
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="hidden md:flex flex-1 h-screen bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 p-12 items-center justify-center relative overflow-hidden">
+                
+                <div class="absolute w-[500px] h-[500px] bg-white/10 rounded-full -top-40 -right-40 blur-3xl pointer-events-none"></div>
+                <div class="absolute w-[300px] h-[300px] bg-sky-300/20 rounded-full -bottom-20 -left-20 blur-2xl pointer-events-none"></div>
+
+                <div class="max-w-md text-white text-center flex flex-col items-center relative z-10">
+                    
+                    <div class="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] mb-8 animate-bounce transition-all duration-1000" style="animation-duration: 4s;">
+                        <span class="text-5xl">✨</span>
+                        <h4 class="font-bold text-sm mt-3">Perpustakaan Ceria v2.0</h4>
+                        <p class="text-[11px] text-sky-100/80 mt-1">Membaca jadi lebih mudah & menyenangkan</p>
+                    </div>
+
+                    <h2 class="text-3xl font-black tracking-tight leading-tight mb-4">
+                        "Buku adalah jendela dunia."
+                    </h2>
+                    <p class="text-sm text-sky-100/90 font-medium leading-relaxed max-w-sm">
+                        Kelola peminjaman, temukan ribuan kategori menarik, dan tingkatkan wawasanmu setiap hari di sini.
+                    </p>
+                </div>
+            </div>
+
+        </div>
         
-         <div class="text-center mb-8">
-            <div class="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
-                <span class="text-3xl">📚</span>  
-         </div>
-         <h1 class="text-2xl font-extrabold text-slate-800">Selamat Datang!</h1>
-            <p class="text-slate-500 text-sm mt-1">Silahkan masuk untuk membaca atau memantau buku</p>
-        </div>
-
-        @if($errors->any())
-         <div class="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium brder border-red-200">   🚨 Aduh, email atau password-mu salah nih. Coba cek lagi ya!</div>
-        @endif
-        <form method="POST" action="{{ route('login') }}" class="space-y-5">
-            @csrf
-            <div>
-                <label for="email" class="block text-sm font-bold text-slate-700 mb-1.5">Alamat Email</label>
-                <input type="email" id="email"name="email" :value="old('email')" required autofocus placeholder="nama@email.com" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-slate-800">
-            </div>
-
-            <div>
-                <label for="password" class="block text-sm font-bold text-slate-700 mb-1.5">Kata Sandi (password)</label>
-                <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="....." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-slate-800">
-            </div>
-
-            <div class="flex items-center">
-                <input type="remember_me" type="checkbox" name="remember" class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 curson-pointe">
-                <label for="remember_me" class="ml-2 text-sm text-slate-600 curson-pointer select-none">Biarkan saya tetap masuk</label>
-            </div>
-
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all curson-pointer transform active:scale-95 text-center block">Masuk Sekarang</button>
-        </form>
-
-            <div class="relative flex py-4 items-center">
-                <div class="flex-grow border-t border-slate-200"></div>
-                <span class="flex-shrink mx-4 text-slate-400 text-xs uppercase">Atau</span>
-                <div class="flex-grow border-t border-slate-200"></div>
-            </div>
-
-            <div class="text-center">
-                <a href="{{ route('register') }}" class="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">Belum punya akun? Bikin di sini</a>
-            </div>
-    
-        </div>
     </body>
 </html>
