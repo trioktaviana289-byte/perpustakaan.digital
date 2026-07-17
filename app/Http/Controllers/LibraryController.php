@@ -7,77 +7,119 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Book;
 use App\Models\Borrowing;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class libraryController extends Controller
 {
- public function arahkanHalaman(Request $request)
-{
-    $user = Auth::user();
-
-    // 1. Ambil data keterlambatan pengembalian buku
-    $bukuTerlambat = Borrowing::where('tanggal_kembali', '<', Carbon::now())->get();
-
-    // 2. Ambil parameter kategori dari URL (?kategori=...)
-    $kategoriDipilih = $request->query('kategori');
-
-    // 3. Ambil data buku berdasarkan kategori yang diklik
-    if ($kategoriDipilih) {
-        $semuaBuku = Book::where('kategori', $kategoriDipilih)->get();
-    } else {
-        $semuaBuku = Book::all();
-    }
-
-    // 4. BAGIAN YANG DIUBAH: Pisahkan halaman berdasarkan role penjaga vs peminjam
-    if ($user && (strtolower($user->role) === 'penjaga' || strtolower($user->role) === 'admin')) {
-        $semuaPinjaman = Borrowing::all();
-        
-        // Mengarahkan penjaga ke file view 'resources/views/penjaga.blade.php'
-        return view('halaman_penjaga', compact('semuaPinjaman', 'bukuTerlambat', 'semuaBuku'));
-    } else {
-        // Mengarahkan peminjam biasa ke file view 'resources/views/dashboard.blade.php'
-        return view('dashboard', compact('bukuTerlambat', 'semuaBuku'));
-    }
-}
-
-    // 2. Memproses aksi peminjaman buku dari siswa/peminjam
-    public function prosesPinjam(Request $request)
+    // Fungsi untuk menampilkan halaman utama
+    public function index(Request $request)
     {
-        $judulBukuDariForm = $request->judul_buku;
-        $buku = Book::where('judul', $judulBukuDariForm)->first();
-
-        if (!$buku) {
-            return redirect('/dashboard')->with('error', 'Aduh, buku tidak ditemukan!');
+        $query = Book::query();
+        if ($request->has('kategori') && $request->kategori) {
+            $query->where('kategori', $request->kategori);
         }
+        $semuaBuku = $query->get();
+        $bukuTerlambat = Borrowing::where('tanggal_kembali', '<', Carbon::now())->get();
 
-        $buku->status = 'Dipinjam';
-        $buku->save();
+        return view('dashboard', compact('semuaBuku', 'bukuTerlambat'));
+    }
 
-        // Catat riwayat transaksi ke dalam tabel borrowings
-        // Ditambahkan tanggal_kembali otomatis (7 hari dari sekarang)
-        Borrowing::create([
-            'nama_peminjam'   => Auth::user()->name,
-            'judul_buku'      => $buku->judul,
-            'tanggal_kembali' => Carbon::now()->addDays(7) 
+    // Fungsi Tambah Buku Baru + Upload Sampul Pertama (Baru Ditambahkan!)
+    public function storeBook(Request $request)
+    {
+        $request->validate([
+            'judul' => 'required|string|max:255',
+            'penulis' => 'required|string|max:255',
+            'kategori' => 'required|string',
+            'cover' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
-        return redirect('/dashboard')->with('sukses', 'Berhasil meminjam buku ' . $buku->judul . '!');
-    }
+        $buku = new Book();
+        $buku->judul = $request->judul;
+        $buku->penulis = $request->penulis;
+        $buku->kategori = $request->kategori;
+        $buku->status = 'Tersedia';
 
-    // 3. Memproses pengembalian buku
-    public function prosesKembali(Request $request)
-    {
-        $judulBuku = trim($request->judul_buku);
-        $buku = Book::where('judul', 'LIKE', $judulBuku)->first();
-
-        if ($buku) {
-            $buku->status = 'Tersedia';
-            $buku->save();
-
-            Borrowing::where('judul_buku', 'LIKE', $judulBuku)->delete();
-
-            return redirect('/dashboard')->with('sukses', 'Buku "' . $buku->judul . '" telah berhasil dikembalikan!');
+        if ($request->hasFile('cover')) {
+            // Simpan gambar ke storage/app/public/covers
+            $path = $request->file('cover')->store('covers', 'public');
+            $buku->cover = $path;
         }
 
-        return redirect('/dashboard')->with('error', 'Aduh! Gagal mengubah status buku "' . $judulBuku . '" di database.');
+        $buku->save();
+
+        return redirect()->back()->with('sukses', 'Buku baru berhasil disimpan!');
+    }
+
+    // Fungsi Pinjam
+    public function prosesPinjam(Request $request)
+    {
+        $request->validate(['judul_buku' => 'required']);
+        $buku = Book::where('judul', trim($request->judul_buku))->first();
+
+        if ($buku && trim($buku->status) === 'Tersedia') {
+            $buku->update(['status' => 'Dipinjam']);
+
+            Borrowing::create([
+                'nama_peminjam'   => Auth::user()->name,
+                'judul_buku'      => $buku->judul,
+                'tanggal_kembali' => Carbon::now()->addDays(7)
+            ]);
+
+            return redirect()->back()->with('sukses', 'Berhasil meminjam: ' . $buku->judul);
+        }
+
+        return redirect()->back()->with('error', 'Maaf, buku tidak tersedia!');
+    }
+
+    // Fungsi Kembali
+    public function prosesKembali(Request $request)
+    {
+        $request->validate(['judul_buku' => 'required']);
+        $buku = Book::where('judul', trim($request->judul_buku))->first();
+
+        if ($buku) {
+            $buku->update(['status' => 'Tersedia']);
+            Borrowing::where('judul_buku', $buku->judul)->delete();
+            
+            return redirect()->back()->with('sukses', 'Buku ' . $buku->judul . ' berhasil dikembalikan.');
+        }
+        
+        return redirect()->back()->with('error', 'Gagal memproses pengembalian.');
+    }
+
+    public function daftarPeminjaman()
+    {
+        $peminjaman = Borrowing::all();
+        return view('peminjaman.index', compact('peminjaman'));
+    }
+
+    public function kembalikan(Request $request) 
+    {
+        $peminjaman = Borrowing::findOrFail($request->id);
+        $peminjaman->delete();
+        
+        return redirect()->back()->with('sukses', 'Buku berhasil dikembalikan.');
+    }
+    
+    // Fungsi Update/Ganti Sampul Buku
+    public function update(Request $request, $id)
+    {
+        $request->validate(['cover' => 'required|image|mimes:jpeg,png,jpg|max:2048']);
+
+        $buku = Book::findOrFail($id);  
+        
+        if ($request->hasFile('cover')) {
+            // Hapus file sampul lama jika ada agar folder storage tidak menumpuk sampah
+            if ($buku->cover && Storage::disk('public')->exists($buku->cover)) {
+                Storage::disk('public')->delete($buku->cover);
+            }
+
+            // Simpan file sampul baru
+            $path = $request->file('cover')->store('covers', 'public');
+            $buku->cover = $path;
+            $buku->save();
+        }
+        return redirect()->back()->with('sukses', 'Sampul berhasil diperbarui!');
     }
 }

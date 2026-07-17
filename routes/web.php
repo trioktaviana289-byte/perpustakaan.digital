@@ -1,35 +1,41 @@
 <?php
 
-// 1. KELOMPOK IMPORT (Harus selalu di paling atas file di bawah <?php)
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\libraryController;
 use Illuminate\Support\Facades\Route;
 
-// 2. KELOMPOK RUTE UMUM & LOGIN
-Route::get('/', function () {
-    return view('auth.login');
+// 1. Rute Halaman Login
+Route::get('/', function () { 
+    return view('auth.login'); 
 });
 
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
-
-// 3. KELOMPOK RUTE APLIKASI PERPUSTAKAAN
-Route::get('/dashboard', [libraryController::class, 'arahkanHalaman'])
+// 2. Rute Dashboard (Menggunakan fungsi 'index' di libraryController)
+Route::get('/dashboard', [libraryController::class, 'index'])
      ->middleware(['auth', 'verified'])
      ->name('dashboard');
 
-Route::post('/pinjam-buku', [libraryController::class, 'prosesPinjam'])
-    ->middleware('auth');
-
-Route::post('/kembalikan-buku', [libraryController::class, 'prosesKembali'])
-    ->middleware('auth');
-
-// 4. KELOMPOK RUTE PROFILE BAWAAN LARAVEL (Untuk mengatasi RouteNotFoundException)
+// 3. Rute yang memerlukan Autentikasi (Wajib Login)
 Route::middleware('auth')->group(function () {
+    
+    // Manajemen Profil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+
+    // Manajemen Buku (Tambah Buku & Ganti Sampul)
+    Route::post('/profile/avatar', [libraryController::class, 'updateAvatar'])->name('profile.avatar.update');
     
+    // Disinkronkan: storeBook untuk menyimpan buku baru
+    Route::post('/buku', [libraryController::class, 'storeBook'])->name('books.store');
+    
+    // Disinkronkan: update untuk mengganti sampul
+    Route::put('/books/update/{id}', [libraryController::class, 'update'])->name('books.update');
+
+    // FITUR UTAMA: Pinjam & Kembalikan (Disinkronkan dengan dashboard.blade.php)
+    Route::post('/pinjam-buku', [libraryController::class, 'prosesPinjam'])->name('books.pinjam');
+    Route::post('/kembalikan-buku', [libraryController::class, 'prosesKembali'])->name('books.kembalikan');
+
+    Route::get('/daftar-peminjaman', [libraryController::class, 'daftarPeminjaman'])->name('peminjaman.index');
+});
+
 require __DIR__.'/auth.php';

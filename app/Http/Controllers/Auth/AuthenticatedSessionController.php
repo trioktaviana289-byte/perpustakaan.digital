@@ -28,11 +28,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        if (auth()->user()->role == 'admin') {
-            return redirect('/admin');
-        }
-        return redirect('/dashboard');
-    }
+        // Mengambil data user yang baru saja berhasil login
+        $user = Auth::user();
+        
+        // Mengarahkan semua user (Penjaga maupun Peminjam) ke rute '/dashboard'
+        return redirect()->intended('/dashboard');
+    } // Kurung kurawal penutup fungsi store yang benar
 
     /**
      * Destroy an authenticated session.

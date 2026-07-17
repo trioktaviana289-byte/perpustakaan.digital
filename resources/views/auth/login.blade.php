@@ -71,29 +71,8 @@
                 </div>
             </div>
 
-            <div class="hidden md:flex flex-1 h-screen bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 p-12 items-center justify-center relative overflow-hidden">
-                
-                <div class="absolute w-[500px] h-[500px] bg-white/10 rounded-full -top-40 -right-40 blur-3xl pointer-events-none"></div>
-                <div class="absolute w-[300px] h-[300px] bg-sky-300/20 rounded-full -bottom-20 -left-20 blur-2xl pointer-events-none"></div>
-
-                <div class="max-w-md text-white text-center flex flex-col items-center relative z-10">
-                    
-                    <div class="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] mb-8 animate-bounce transition-all duration-1000" style="animation-duration: 4s;">
-                        <span class="text-5xl">✨</span>
-                        <h4 class="font-bold text-sm mt-3">Perpustakaan Ceria v2.0</h4>
-                        <p class="text-[11px] text-sky-100/80 mt-1">Membaca jadi lebih mudah & menyenangkan</p>
-                    </div>
-
-                    <h2 class="text-3xl font-black tracking-tight leading-tight mb-4">
-                        "Buku adalah jendela dunia."
-                    </h2>
-                    <p class="text-sm text-sky-100/90 font-medium leading-relaxed max-w-sm">
-                        Kelola peminjaman, temukan ribuan kategori menarik, dan tingkatkan wawasanmu setiap hari di sini.
-                    </p>
-                </div>
-            </div>
-
-        </div>
+          
+        
         
     </body>
 </html>

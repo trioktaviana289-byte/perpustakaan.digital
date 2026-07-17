@@ -9,13 +9,23 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('borrowings', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-            $table->string('nama_peminjam');
-            $table->string('judul_buku');
+   public function up(): void
+{
+    Schema::create('borrowings', function (Blueprint $table) {
+        $table->id();
+        $table->string('nama_peminjam');
+        $table->string('judul_buku');
+        $table->string('status')->default('Dipinjam');
+        $table->dateTime('tanggal_kembali')->nullable(); // <-- Pastikan T-nya BESAR (dateTime)
+        $table->timestamps();
+    });
+
+
+        // 2. Menambahkan kolom tanggal_kembali ke dalam tabel borrowings
+        Schema::table('borrowings', function (Blueprint $table) {
+            if (!Schema::hasColumn('borrowings', 'tanggal_kembali')) {
+                $table->dateTime('tanggal_kembali')->nullable()->after('judul_buku');
+            }
         });
     }
 
@@ -24,6 +34,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Menghapus tabel borrowings jika migrasi di-rollback
         Schema::dropIfExists('borrowings');
     }
 };
