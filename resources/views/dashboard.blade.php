@@ -3,7 +3,7 @@
         <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
             <div>
                 <h1 class="text-xl font-black text-slate-800 tracking-tight uppercase">
-                    Perpustakaan <span class="text-pink-600">Digital</span> 
+                    Perpustakaan <span class="text-blue-600">Digital</span> 
                     @if(Auth::check())
                         <span class="text-xs font-semibold text-slate-400 lowercase italic">
                             ({{ strtolower(Auth::user()->role) }})
@@ -33,7 +33,7 @@
             {{-- HEADER NAVIGASI KATEGORI --}}
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100/80 flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <div class="flex items-center gap-2 pl-2">
-                    <span class="text-pink-600 text-sm">🎀</span>
+                    <span class="text-pink-600 text-sm">🌻</span>
                     <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Kategori Rak Buku</span>
                 </div>
                 <div class="flex gap-1 bg-slate-50 p-1 rounded-xl">
@@ -53,17 +53,21 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Judul Buku</label>
-                                <input type="text" name="judul" required class="w-full rounded-xl border-slate-200 focus:border-pink-500 text-xs p-2.5">
+                                <input type="text" name="judul" required class="w-full rounded-xl border-slate-200 focus:border-blue-500 text-xs p-2.5">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Penulis</label>
-                                <input type="text" name="penulis" required class="w-full rounded-xl border-slate-200 focus:border-pink-500 text-xs p-2.5">
+                                <input type="text" name="penulis" required class="w-full rounded-xl border-slate-200 focus:border-blue-500 text-xs p-2.5">
+                            </div>
+                             <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Deskripsi</label>
+                                <input type="text" name="deskripsi" required class="w-full rounded-xl border-slate-200 focus:border-blue-500 text-xs p-2.5">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kategori</label>
-                                <select name="kategori" class="w-full rounded-xl border-slate-200 focus:border-pink-500 text-xs p-2.5 bg-white">
+                                <select name="kategori" class="w-full rounded-xl border-slate-200 focus:border-blue-500 text-xs p-2.5 bg-white">
                                     <option value="Sains">🔬 Sains</option>
                                     <option value="Fiksi">📖 Fiksi</option>
                                     <option value="Sejarah">📜 Sejarah</option>
@@ -71,11 +75,11 @@
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pilih File Sampul (Gambar)</label>
-                                <input type="file" name="cover" required class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-pink-50 file:text-pink-700">
+                                <input type="file" name="cover" required class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-blue-50 file:text-blue-700">
                             </div>
                         </div>
                         <input type="hidden" name="status" value="Tersedia">
-                        <button type="submit" class="w-full py-2.5 bg-pink-600 text-white font-bold rounded-xl text-xs uppercase tracking-wider hover:bg-pink-700 transition">
+                        <button type="submit" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs uppercase tracking-wider hover:bg-blue-700 transition">
                             💾 Simpan Buku Baru
                         </button>
                     </form>
@@ -91,27 +95,30 @@
                             
                             <div class="flex-grow flex flex-col">
                                 <div class="mb-4">
-                                    <span class="text-[9px] uppercase tracking-wider bg-pink-50 text-pink-600 font-bold px-3 py-1 rounded-full">
+                                    <span class="text-[9px] uppercase tracking-wider bg-blue-50 text-blue-600 font-bold px-3 py-1 rounded-full">
                                         {{ $item->kategori ?? 'UMUM' }}
                                     </span>
                                 </div>
 
-                                <div class="w-full h-[400px] bg-slate-100 rounded-[24px] overflow-hidden shadow-sm border border-slate-100/60 relative mb-4 flex items-center justify-center">
-                                    @if($item->cover)
-                                        <img src="{{ asset('storage/' . $item->cover) }}" class="w-full h-full object-cover">
-                                    @else
-                                        <div class="flex flex-col items-center gap-2 text-center p-6 text-slate-400">
-                                            <span class="text-3xl">📖</span>
-                                            <span class="text-[9px] font-bold tracking-widest uppercase">Belum Ada Sampul</span>
-                                        </div>
-                                    @endif
-                                </div>
+                               @if($item->cover)
+                                    <div class="w-full aspect-[2/3] bg-slate-100 rounded-t-[24px] overflow-hidden flex items-center justify-center p-2">
+                                       <img src="{{ asset('storage/' . $item->cover) }}" class="w-full h-full object-cover terget-cover scale-105 rounded-2xl" alt="{{ $item->judul }}">
+                                    </div>
+                               @else
+                                    <div class="w-full h-[400px] bg-slate-100 rounded-[24px] overflow-hidden shadow-sm border border-slate-100 flex flex-col items-center gap-2 text-center p-6 text-slate-400 justify-center">
+                                        <span class="text-3xl">📁</span>
+                                        <span class="text-[9px] font-bold tracking-widest uppercase">Belum Ada Sampul</span>
+                                    </div>
+                               @endif
 
                                 <div class="px-2 mt-2">
                                     <h3 class="font-bold text-slate-800 text-lg leading-tight line-clamp-1" title="{{ $item->judul }}">
                                         {{ $item->judul }}
                                     </h3>
                                     <p class="text-xs text-slate-400 mt-1">by {{ $item->penulis }}</p>
+                                       <p class="text-xs text-slate-600 italic leading-relaxed h-20 overflow-y-auto mb-4">
+                                           {{ $deskripsiBuku[$item->judul] ?? 'deskripsi tidak tersedia'}}
+                                       </p>
                                 </div>
 
                                 {{-- FORM EDIT SAMPUL CEPAT (MENGGUNAKAN STRTOLOWER AGAR AMAN) --}}
@@ -124,7 +131,7 @@
                                             <input type="file" name="cover" required class="hidden" 
                                                 onchange="document.getElementById('label-file-{{$item->id}}').innerText = this.files[0].name">
                                         </label>
-                                        <button type="submit" class="w-full bg-pink-600 text-white text-[9px] font-bold py-1.5 rounded-lg hover:bg-pink-700 transition uppercase tracking-wider">
+                                        <button type="submit" class="w-full bg-blue-600 text-white text-[9px] font-bold py-1.5 rounded-lg hover:bg-blue-700 transition uppercase tracking-wider">
                                             💾 Upload
                                         </button>
                                     </form>
@@ -139,8 +146,8 @@
                                             <form method="POST" action="{{ route('books.pinjam') }}">
                                                 @csrf
                                                 <input type="hidden" name="judul_buku" value="{{ $item->judul }}">
-                                                <button type="submit" class="w-full py-3 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-2xl text-xs uppercase tracking-wider transition text-center block">
-                                                    Pinjam Buku 💖
+                                                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-xs uppercase tracking-wider transition text-center block">
+                                                    Pinjam Buku 🍒
                                                 </button>
                                             </form>
                                         @else
