@@ -1,4 +1,7 @@
 <x-app-layout>
+    {{-- SCRIPT SWEETALERT2 --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <header class="bg-white py-6 mb-6">
         <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
             <div>
@@ -19,16 +22,8 @@
         </div>
     </header>
 
-    <div class="max-w-7xl mx-auto px-6 mt-2">
-        @if(session('sukses'))
-            <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-5 py-3.5 rounded-2xl text-xs font-semibold shadow-sm mb-6">
-                ✅ {{ session('sukses') }}
-            </div>
-        @endif
-    </div>
-
-    <div class="py-6 bg-slate-50/50 min-h-screen">
-        <div class="max-w-7xl mx-auto px-6 space-y-8">
+    <div class="py-6 bg-slate-50/50 min-h-screen flex flex-col justify-between">
+        <div class="max-w-7xl mx-auto px-6 space-y-8 w-full">
             
             {{-- HEADER NAVIGASI KATEGORI --}}
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100/80 flex flex-col sm:flex-row gap-4 items-center justify-between">
@@ -44,7 +39,7 @@
                 </div>
             </div>
 
-            {{-- PANEL KHUSUS PENJAGA (MENGGUNAKAN STRTOLOWER AGAR AMAN) --}}
+            {{-- PANEL KHUSUS PENJAGA (TAMBAH BUKU BARU) --}}
             @if(Auth::check() && strtolower(Auth::user()->role) == 'penjaga')
                 <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm max-w-xl mx-auto w-full">
                     <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-4 text-center">📚 Tambah Buku & Sampul Baru</h3>
@@ -59,10 +54,10 @@
                                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Penulis</label>
                                 <input type="text" name="penulis" required class="w-full rounded-xl border-slate-200 focus:border-blue-500 text-xs p-2.5">
                             </div>
-                             <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Deskripsi</label>
-                                <input type="text" name="deskripsi" required class="w-full rounded-xl border-slate-200 focus:border-blue-500 text-xs p-2.5">
-                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Deskripsi</label>
+                            <input type="text" name="deskripsi" required class="w-full rounded-xl border-slate-200 focus:border-blue-500 text-xs p-2.5">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
@@ -74,8 +69,8 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pilih File Sampul (Gambar)</label>
-                                <input type="file" name="cover" required class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-blue-50 file:text-blue-700">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pilih File Sampul</label>
+                                <input type="file" name="cover" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-blue-50 file:text-blue-700">
                             </div>
                         </div>
                         <input type="hidden" name="status" value="Tersedia">
@@ -91,54 +86,76 @@
                 @if(isset($semuaBuku) && $semuaBuku->count() > 0)
                     
                     @foreach($semuaBuku as $item)
-                        <div class="bg-white rounded-[32px] p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div class="bg-white rounded-[32px] p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full relative">
                             
                             <div class="flex-grow flex flex-col">
-                                <div class="mb-4">
+                                <div class="mb-4 flex justify-between items-center">
                                     <span class="text-[9px] uppercase tracking-wider bg-blue-50 text-blue-600 font-bold px-3 py-1 rounded-full">
                                         {{ $item->kategori ?? 'UMUM' }}
                                     </span>
+
+                                    {{-- TOMBOL HAPUS BUKU MODERN (KHUSUS PENJAGA) --}}
+                                    @if(Auth::check() && strtolower(Auth::user()->role) == 'penjaga')
+                                        <form id="form-delete-{{ $item->id }}" action="{{ route('books.destroy', $item->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" 
+                                                    onclick="konfirmasiHapus({{ $item->id }}, '{{ addslashes($item->judul) }}')" 
+                                                    class="flex items-center gap-1.5 text-rose-500 hover:text-rose-700 text-xs font-bold bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl transition-all shadow-sm active:scale-95" 
+                                                    title="Hapus Buku">
+                                                <span>🗑️</span>
+                                                <span>Hapus</span>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
 
-                               @if($item->cover)
+                                {{-- SAMPUL BUKU --}}
+                                @if($item->cover)
                                     <div class="w-full aspect-[2/3] bg-slate-100 rounded-t-[24px] overflow-hidden flex items-center justify-center p-2">
-                                       <img src="{{ asset('storage/' . $item->cover) }}" class="w-full h-full object-cover terget-cover scale-105 rounded-2xl" alt="{{ $item->judul }}">
+                                        <img src="{{ asset('storage/' . $item->cover) }}" class="w-full h-full object-cover scale-105 rounded-2xl" alt="{{ $item->judul }}">
                                     </div>
-                               @else
-                                    <div class="w-full h-[400px] bg-slate-100 rounded-[24px] overflow-hidden shadow-sm border border-slate-100 flex flex-col items-center gap-2 text-center p-6 text-slate-400 justify-center">
+                                @else
+                                    <div class="w-full h-[250px] bg-slate-100 rounded-[24px] overflow-hidden shadow-sm border border-slate-100 flex flex-col items-center gap-2 text-center p-6 text-slate-400 justify-center">
                                         <span class="text-3xl">📁</span>
                                         <span class="text-[9px] font-bold tracking-widest uppercase">Belum Ada Sampul</span>
                                     </div>
-                               @endif
+                                @endif
 
-                                <div class="px-2 mt-2">
+                                {{-- DETAIL BUKU --}}
+                                <div class="px-2 mt-3">
                                     <h3 class="font-bold text-slate-800 text-lg leading-tight line-clamp-1" title="{{ $item->judul }}">
                                         {{ $item->judul }}
                                     </h3>
                                     <p class="text-xs text-slate-400 mt-1">by {{ $item->penulis }}</p>
-                                       <p class="text-xs text-slate-600 italic leading-relaxed h-20 overflow-y-auto mb-4">
-                                           {{ $deskripsiBuku[$item->judul] ?? 'deskripsi tidak tersedia'}}
-                                       </p>
+                                    <p class="text-xs text-slate-600 italic leading-relaxed h-16 overflow-y-auto mt-2 mb-2">
+                                        {{ $item->deskripsi ?? 'Deskripsi tidak tersedia' }}
+                                    </p>
                                 </div>
 
-                                {{-- FORM EDIT SAMPUL CEPAT (MENGGUNAKAN STRTOLOWER AGAR AMAN) --}}
+                                {{-- FORM EDIT / GANTI SAMPUL BUKU (KHUSUS PENJAGA) --}}
                                 @if(Auth::check() && strtolower(Auth::user()->role) == 'penjaga')
-                                    <form action="{{ route('books.update', $item->id) }}" method="POST" enctype="multipart/form-data" class="mt-4 pt-3 border-t border-dashed border-slate-100">
+                                    <form action="{{ route('books.update', $item->id) }}" method="POST" enctype="multipart/form-data" class="mt-2 pt-3 border-t border-dashed border-slate-100">
                                         @csrf 
                                         @method('PUT')
-                                        <label class="block w-full cursor-pointer bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] text-center py-2 rounded-lg font-bold transition mb-1.5">
-                                            <span id="label-file-{{$item->id}}">🖼️ Ganti Sampul</span>
+                                        
+                                        <input type="hidden" name="judul" value="{{ $item->judul }}">
+                                        <input type="hidden" name="penulis" value="{{ $item->penulis }}">
+                                        <input type="hidden" name="kategori" value="{{ $item->kategori }}">
+
+                                        <label class="block w-full cursor-pointer bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] text-center py-2 rounded-lg font-bold transition mb-1.5 border border-slate-200">
+                                            <span id="label-file-{{$item->id}}">🖼️ Pilih Sampul Baru</span>
                                             <input type="file" name="cover" required class="hidden" 
                                                 onchange="document.getElementById('label-file-{{$item->id}}').innerText = this.files[0].name">
                                         </label>
                                         <button type="submit" class="w-full bg-blue-600 text-white text-[9px] font-bold py-1.5 rounded-lg hover:bg-blue-700 transition uppercase tracking-wider">
-                                            💾 Upload
+                                            💾 Simpan Sampul
                                         </button>
                                     </form>
                                 @endif
                             </div>  
 
-                            {{-- TOMBOL AKSI UTAMA DI BAWAH (MENGGUNAKAN STRTOLOWER) --}}
+                            {{-- TOMBOL AKSI UTAMA DI BAWAH (PINJAM / KEMBALIKAN) --}}
                             <div class="px-2 pt-4 mt-4 border-t border-slate-50">
                                 @if(Auth::check())
                                     @if(strtolower(Auth::user()->role) == 'peminjam')
@@ -184,5 +201,74 @@
             </div>
 
         </div>
+
+       {{-- 📌 FOOTER RATA TENGAH --}}
+        <footer class="bg-white border-t border-slate-200/80 mt-16 py-8 w-full">
+            <div class="max-w-7xl mx-auto px-6 flex flex-col items-center justify-center text-center gap-4">
+                
+                {{-- BRAND & COPYRIGHT --}}
+                <div>
+                    <p class="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        Perpustakaan <span class="text-blue-600">Digital</span>
+                    </p>
+                    <p class="text-[11px] text-slate-400 mt-1">
+                        © {{ date('Y') }} Sistem Informasi Perpustakaan. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </footer>
     </div>
+
+    {{-- SCRIPT JAVASCRIPT UNTUK POP-UP SWEETALERT2 --}}
+    <script>
+        // 1. Function Pop-up Konfirmasi Hapus
+        function konfirmasiHapus(id, judul) {
+            Swal.fire({
+                title: 'Konfirmasi Hapus',
+                text: `Apakah Anda yakin ingin menghapus buku "${judul}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                customClass: {
+                    popup: 'rounded-3xl p-6 shadow-xl',
+                    confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider',
+                    cancelButton: 'px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('form-delete-' + id).submit();
+                }
+            });
+        }
+
+        // 2. Pop-up Otomatis Jika Berhasil (Flash Session Sukses)
+        @if(session('sukses'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: "{{ session('sukses') }}",
+                timer: 2500,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'rounded-3xl p-6 shadow-xl'
+                }
+            });
+        @endif
+
+        // 3. Pop-up Otomatis Jika Error (Flash Session Error)
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: "{{ session('error') }}",
+                confirmButtonColor: '#ef4444',
+                customClass: {
+                    popup: 'rounded-3xl p-6 shadow-xl'
+                }
+            });
+        @endif
+    </script>
 </x-app-layout>
