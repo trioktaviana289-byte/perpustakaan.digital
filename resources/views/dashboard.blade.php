@@ -25,17 +25,29 @@
     <div class="py-6 bg-slate-50/50 min-h-screen flex flex-col justify-between">
         <div class="max-w-7xl mx-auto px-6 space-y-8 w-full">
             
-            {{-- HEADER NAVIGASI KATEGORI --}}
+            {{-- HEADER NAVIGASI KATEGORI & DAFTAR PEMINJAMAN --}}
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100/80 flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <div class="flex items-center gap-2 pl-2">
                     <span class="text-pink-600 text-sm">🌻</span>
                     <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Kategori Rak Buku</span>
                 </div>
-                <div class="flex gap-1 bg-slate-50 p-1 rounded-xl">
-                    <a href="/dashboard" class="text-xs font-semibold px-4 py-2 rounded-lg transition-all {{ !request('kategori') ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}">Semua</a>
-                    <a href="/dashboard?kategori=Sains" class="text-xs font-semibold px-4 py-2 rounded-lg transition-all {{ request('kategori') == 'Sains' ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}">🔬 Sains</a>
-                    <a href="/dashboard?kategori=Fiksi" class="text-xs font-semibold px-4 py-2 rounded-lg transition-all {{ request('kategori') == 'Fiksi' ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}">📖 Fiksi</a>
-                    <a href="/dashboard?kategori=Sejarah" class="text-xs font-semibold px-4 py-2 rounded-lg transition-all {{ request('kategori') == 'Sejarah' ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}">📜 Sejarah</a>
+
+                <div class="flex flex-col sm:flex-row items-center gap-3">
+                    <div class="flex gap-1 bg-slate-50 p-1 rounded-xl">
+                        <a href="/dashboard" class="text-xs font-semibold px-4 py-2 rounded-lg transition-all {{ !request('kategori') ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}">Semua</a>
+                        <a href="/dashboard?kategori=Sains" class="text-xs font-semibold px-4 py-2 rounded-lg transition-all {{ request('kategori') == 'Sains' ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}">🔬 Sains</a>
+                        <a href="/dashboard?kategori=Fiksi" class="text-xs font-semibold px-4 py-2 rounded-lg transition-all {{ request('kategori') == 'Fiksi' ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}">📖 Fiksi</a>
+                        <a href="/dashboard?kategori=Sejarah" class="text-xs font-semibold px-4 py-2 rounded-lg transition-all {{ request('kategori') == 'Sejarah' ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}">📜 Sejarah</a>
+                    </div>
+
+                  {{-- 📋 TOMBOL KHUSUS PENJAGA PERPUSTAKAAN --}}
+                  @if(Auth::check() && strtolower(Auth::user()->role) == 'penjaga')
+                    <a href="{{ route('peminjaman.index') }}" 
+                        class="text-xs font-bold px-4 py-2.5 bg-blue-600 text-white rounded-xl shadow-sm hover:bg-blue-700 transition flex items-center gap-2 uppercase tracking-wider">
+                         <span>📋</span>
+                         <span>Daftar Peminjaman</span>
+                    </a>
+                  @endif
                 </div>
             </div>
 
@@ -110,27 +122,29 @@
                                     @endif
                                 </div>
 
-                                {{-- SAMPUL BUKU --}}
-                                @if($item->cover)
-                                    <div class="w-full aspect-[2/3] bg-slate-100 rounded-t-[24px] overflow-hidden flex items-center justify-center p-2">
-                                        <img src="{{ asset('storage/' . $item->cover) }}" class="w-full h-full object-cover scale-105 rounded-2xl" alt="{{ $item->judul }}">
-                                    </div>
-                                @else
-                                    <div class="w-full h-[250px] bg-slate-100 rounded-[24px] overflow-hidden shadow-sm border border-slate-100 flex flex-col items-center gap-2 text-center p-6 text-slate-400 justify-center">
-                                        <span class="text-3xl">📁</span>
-                                        <span class="text-[9px] font-bold tracking-widest uppercase">Belum Ada Sampul</span>
-                                    </div>
-                                @endif
+                                {{-- SAMPUL BUKU (DI-BUNGKUS LINK KE DETAIL BUKU) --}}
+                                <a href="{{ route('books.show', $item->id) }}" class="block group cursor-pointer" title="Klik untuk lihat detail {{ $item->judul }}">
+                                    @if($item->cover)
+                                        <div class="w-full aspect-[2/3] bg-slate-100 rounded-t-[24px] overflow-hidden flex items-center justify-center p-2">
+                                            <img src="{{ asset('storage/' . $item->cover) }}" class="w-full h-full object-cover scale-105 rounded-2xl group-hover:scale-110 transition duration-300" alt="{{ $item->judul }}">
+                                        </div>
+                                    @else
+                                        <div class="w-full h-[250px] bg-slate-100 rounded-[24px] overflow-hidden shadow-sm border border-slate-100 flex flex-col items-center gap-2 text-center p-6 text-slate-400 justify-center group-hover:bg-slate-200 transition duration-300">
+                                            <span class="text-3xl">📁</span>
+                                            <span class="text-[9px] font-bold tracking-widest uppercase">Belum Ada Sampul</span>
+                                        </div>
+                                    @endif
+                                </a>
 
                                 {{-- DETAIL BUKU --}}
                                 <div class="px-2 mt-3">
                                     <h3 class="font-bold text-slate-800 text-lg leading-tight line-clamp-1" title="{{ $item->judul }}">
-                                        {{ $item->judul }}
+                                        <a href="{{ route('books.show', $item->id) }}" class="hover:text-blue-600 transition">
+                                            {{ $item->judul }}
+                                        </a>
                                     </h3>
                                     <p class="text-xs text-slate-400 mt-1">by {{ $item->penulis }}</p>
-                                    <p class="text-xs text-slate-600 italic leading-relaxed h-16 overflow-y-auto mt-2 mb-2">
-                                        {{ $item->deskripsi ?? 'Deskripsi tidak tersedia' }}
-                                    </p>
+                                
                                 </div>
 
                                 {{-- FORM EDIT / GANTI SAMPUL BUKU (KHUSUS PENJAGA) --}}
@@ -202,7 +216,7 @@
 
         </div>
 
-       {{-- 📌 FOOTER RATA TENGAH --}}
+        {{-- 📌 FOOTER RATA TENGAH --}}
         <footer class="bg-white border-t border-slate-200/80 mt-16 py-8 w-full">
             <div class="max-w-7xl mx-auto px-6 flex flex-col items-center justify-center text-center gap-4">
                 

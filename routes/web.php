@@ -36,6 +36,9 @@ Route::middleware('auth')->group(function () {
     // Hapus Buku (Baru Ditambahkan!)
     Route::delete('/buku/{id}', [libraryController::class, 'destroy'])->name('books.destroy');
 
+    // Melihat Detai buku berdasarkan ID
+    Route::get('/buku/{id}', [libraryController::class, 'detailBook'])->name('books.show');
+
     // --- FITUR PEMINJAMAN & PENGEMBALIAN ---
     Route::post('/pinjam-buku', [libraryController::class, 'prosesPinjam'])->name('books.pinjam');
     Route::post('/kembalikan-buku', [libraryController::class, 'prosesKembali'])->name('books.kembalikan');

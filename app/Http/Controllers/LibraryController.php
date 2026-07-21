@@ -49,7 +49,7 @@ class libraryController extends Controller
         $buku->penulis = $request->penulis;
         $buku->kategori = $request->kategori;
         $buku->deskripsi = $request->deskripsi;
-        $buku->status = 'Tersedia';
+        $buku->status = 'tersedia';
 
         if ($request->hasFile('cover')) {
             $path = $request->file('cover')->store('covers', 'public');
@@ -132,6 +132,13 @@ class libraryController extends Controller
         $buku->delete();
 
         return redirect()->back()->with('sukses', 'Buku berhasil dihapus!');
+    }
+
+    public function detailBook($id)
+    {
+        $buku = Book::findOrFail($id);
+
+        return view('books.show', compact('buku'));
     }
 
     // ==========================================
