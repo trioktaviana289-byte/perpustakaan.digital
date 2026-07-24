@@ -21,7 +21,28 @@ class libraryController extends Controller
         $semuaBuku = $query->get();
         $bukuTerlambat = Borrowing::where('tanggal_kembali', '<', Carbon::now())->get();
 
-        return view('dashboard', compact('semuaBuku', 'bukuTerlambat'));
+        $peminjamansaya = collect();
+
+        if (Auth::check() && strtolower(Auth::user()->role) === 'peminjam') {
+            $peminjamansaya = Borrowing::where('nama_peminjam', Auth::user()->name)
+                ->get()
+                ->map(function ($item) {
+                    // hitung denda jika terlambat (misal Rp 1.000 / hari)
+                    $tglKembali = Carbon::parse($item->tanggal_kembali);
+                    $sekarang = Carbon::now();
+
+                    if ($sekarang->greaterThan(tglKembali)) {
+                        $hariTerlambat = $sekarang->diffInDays(tglKembali);
+                        $item->denda = $hariTerlambat * 1000; // ubah nominal sesui ketentuan
+                    } else {
+                        $item->denda = 0;
+                    }
+
+                    return $item;
+                });
+        }
+
+        return view('dashboard', compact('semuaBuku', 'bukuTerlambat', 'peminjamansaya'));
     }
 
     // ==========================================

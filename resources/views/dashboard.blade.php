@@ -51,6 +51,68 @@
                 </div>
             </div>
 
+            {{-- SECTION KHUSUS PEMINJAM: DAFTAR BUKU YANG SEDANG DIPINJAM --}}
+            if(Auth::check() && strolower(Auth::user()->role) == 'peminjam')
+                <div class="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 w-full">
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-winder mb-4 flex items-center gap-2">
+                        <span>📚</span>
+                        <span>Buku Yang Sedang Saya Pinjam</span>
+                    </h3>
+
+                    if(isset($peminjamansaya) && $peminjamanasaya->count() > 0)
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="text-slate-400 text-xs font-bold uppercase tracking-widest border-b border-slate-100">
+                                        <th class="p-3">Judul Buku</th>
+                                        <th class="p-3">Tenggat Waktu</th>
+                                        <th class="p-3 text-center">Status / Denda</th>
+                                        <th class="p-3 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-xs font-medium text-slate-600">
+                                    @foreach($peminjamanSaya as $item)
+                                        <tr>
+                                            <td class="p-3 font-bold text-slate-800">
+                                                {{ $item->judul_buku }}
+                                            </td>
+                                            <td class="p-3">
+                                                {{ \Carbon\Carbon::parse($item->tanggal_kembali)->format('d M Y') }}
+                                            </td>
+                                            <td class="p-3 text-center">
+                                                @if($item->denda > 0)
+                                                    <div class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-xl font-bold uppercase text-[10px] inline-block">
+                                                        Terlambat<br>
+                                                        <span class="text-xs">Rp {{ number_format($item->denda, 0, ',', '.') }}</span>
+                                                    </div>
+                                                @else
+                                                    <span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase">
+                                                        Dipinjam
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td class="p-3 text-center">
+                                                <form action="{{ route('books.kembalikan') }}" method="POST">
+                                                    @csrf
+                                                    <input type="hidden" name="judul_buku" value="{{ $item->judul_buku }}">
+                                                    <button type="submit" class="bg-pink-100 text-pink-600 hover:bg-pink-600 hover:text-white px-3 py-1.5 rounded-xl font-bold text-[10px] transition uppercase tracking-wider">
+                                                        Kembalikan
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="p-6 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                            <p class="text-xs font-semibold text-slate-400">Anda tidak sedang meminjam buku apa pun saat ini.</p>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
             {{-- PANEL KHUSUS PENJAGA (TAMBAH BUKU BARU) --}}
             @if(Auth::check() && strtolower(Auth::user()->role) == 'penjaga')
                 <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm max-w-xl mx-auto w-full">
